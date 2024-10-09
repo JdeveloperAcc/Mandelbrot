@@ -1,0 +1,5 @@
+{
+	"host_ip": "120.0.0.1",
+	"host_port": 8055,
+	"images_dir": "./debug"
+}
