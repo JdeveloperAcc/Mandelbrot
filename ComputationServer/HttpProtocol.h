@@ -87,12 +87,12 @@ namespace Mandelbrot
 
 					static const char* SERVER;
 
+					static const char* ETAG;
+
 					// User defined ones
 					static const char* INFO;
 
 					static const char* SCALE_FACTOR;
-
-					static const char* E_TOKEN;
 				};
 
 				class Value
@@ -103,6 +103,8 @@ namespace Mandelbrot
 					static const char* CONNECTION_CLOSE;
 
 					static const char* CONNECTION_KEEP_ALIVE;
+
+					static const char* CONTENT_TYPE_IMAGE_JPEG;
 
 					static const char* CONTENT_TYPE_IMAGE_PNG;
 

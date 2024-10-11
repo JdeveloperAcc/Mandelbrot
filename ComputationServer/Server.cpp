@@ -5,13 +5,13 @@
 #include <QByteArray>
 #include <QCryptographicHash>
 #include <QDateTime>
-#include <QList>
-#include <QLocale>
 #include <QFile>
 #include <QHostAddress>
 #include <QIODevice>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QList>
+#include <QLocale>
 #include <QObject>
 #include <QString>
 #include <QStringList>
@@ -22,7 +22,7 @@
 
 using namespace Mandelbrot::ComputationServer;
 
-Server::Server(QObject *parent) :
+Server::Server(QObject* parent) :
 	QTcpServer(parent),
 	m_address(QHostAddress::LocalHost),
 	m_port(0)
@@ -34,22 +34,22 @@ Server::Server(QObject *parent) :
 bool Server::loadConfig(QString name)
 {
 	QFile loadFile(name);
-    if (!loadFile.open(QIODevice::ReadOnly)) {
-			qWarning() << tr("ComputationServer") <<
-				tr(QString("Can't open the config file " % name).toUtf8().constData());
+	if (!loadFile.open(QIODevice::ReadOnly)) {
+		qWarning() << tr("ComputationServer") <<
+			tr(QString("Can't open the config file " % name).toUtf8().constData());
 
-        return false;
-    }
+		return false;
+	}
 
-    const QByteArray data = loadFile.readAll();
-    const QJsonDocument loadDoc = QJsonDocument::fromJson(data);
+	const QByteArray data = loadFile.readAll();
+	const QJsonDocument loadDoc = QJsonDocument::fromJson(data);
 
-    read(loadDoc.object());
+	read(loadDoc.object());
 
-    return true;
+	return true;
 }
 
-void Server::read(const QJsonObject &json)
+void Server::read(const QJsonObject& json)
 {
 	if (json.contains("listening_ip") && json["listening_ip"].isString()) {
 		const QString ip = json["listening_ip"].toString().trimmed();
@@ -58,9 +58,9 @@ void Server::read(const QJsonObject &json)
 		else
 			m_address = QHostAddress(ip);
 	}
-	
+
 	if (json.contains("listening_port") && json["listening_port"].isDouble()) {
-		m_port = json["listening_port"].toInt();		
+		m_port = json["listening_port"].toInt();
 	}
 }
 
@@ -105,9 +105,11 @@ void Server::parseRequest(qintptr descriptor, QTextStream& data)
 	if (lexicalHttpParser(data, request) == true) {
 		// Server Rules:
 		try {
-			QString ip = request[HttpProtocol::HeaderField::Name::HOST].toLower().toLower();
+
+			QString ip = request[HttpProtocol::HeaderField::Name::HOST].toLower();
 			qsizetype inx = ip.indexOf(':');
-			QHostAddress host(ip.left(inx));
+			QString address = inx == -1 ? ip : ip.left(inx);
+			QHostAddress host = address == "localhost" ? QHostAddress(QHostAddress::LocalHost) : QHostAddress(address);
 			if (host != m_address)
 				errorResponse(stream, HttpProtocol::StatusCode::NOT_ACCEPTABLE, HttpProtocol::ReasonPhrase::NOT_ACCEPTABLE);
 			else if (request["Method"] != HttpProtocol::Method::GET)
@@ -129,20 +131,48 @@ void Server::parseRequest(qintptr descriptor, QTextStream& data)
 					arguments["color"].isNull() || arguments["color"].isEmpty())
 					errorResponse(stream, HttpProtocol::StatusCode::BAD_REQUEST, HttpProtocol::ReasonPhrase::BAD_REQUEST);
 				else {
-					double centerX = arguments["centerX"].toDouble();
-					double centerY = arguments["centerY"].toDouble();
-					double scaleFactor = arguments["scaleFactor"].toDouble();
-					int resultWidth = arguments["resultWidth"].toInt();
-					int resultHeight = arguments["resultHeight"].toInt();
-					QSize size(resultWidth, resultHeight);
-					double pixelRatio = arguments["pixelRatio"].toDouble();
-					QRgb color = arguments["color"].toUInt();
+					double centerX;
+					double centerY;
+					double scaleFactor;;
+					int resultWidth;
+					int resultHeight;
+					double pixelRatio;
+					QRgb color;
 
-					m_renderer.render(descriptor, centerX, centerY, scaleFactor, size, pixelRatio, color);
+					bool* conversionOk = new bool(false);
+					do {
+						centerX = arguments["centerX"].toDouble(conversionOk);
+						if (!*conversionOk) break;
+						centerY = arguments["centerY"].toDouble(conversionOk);
+						if (!*conversionOk) break;
+						scaleFactor = arguments["scaleFactor"].toDouble(conversionOk);
+						if (!*conversionOk) break;
+						resultWidth = arguments["resultWidth"].toInt(conversionOk);
+						if (!*conversionOk) break;
+						resultHeight = arguments["resultHeight"].toInt(conversionOk);
+						if (!*conversionOk) break;
+						pixelRatio = arguments["pixelRatio"].toDouble(conversionOk);
+						if (!*conversionOk) break;
+						color = arguments["color"].toUInt(conversionOk);
+						if (!*conversionOk) break;
+					} while (false);
+
+					const bool ok = *conversionOk;
+					delete conversionOk;
+
+					if (!ok)
+						errorResponse(stream, HttpProtocol::StatusCode::BAD_REQUEST, HttpProtocol::ReasonPhrase::BAD_REQUEST);
+					else {
+						QSize size(resultWidth, resultHeight);
+						m_renderer.render(descriptor, centerX, centerY, scaleFactor, size, pixelRatio, color);
+						return;
+					}
 				}
 			}
 		}
 		catch (...) {
+			qWarning() << tr("ComputationServer")
+				<< tr("Server Rules in error!");
 			errorResponse(stream, HttpProtocol::StatusCode::INTERNAL_SERVER_ERROR, HttpProtocol::ReasonPhrase::INTERNAL_SERVER_ERROR);
 		}
 	}
@@ -184,7 +214,7 @@ bool Server::lexicalHttpParser(QTextStream& stream, HttpData& result) const
 		line = parsed[0].split(' ');
 	else
 		qWarning() << tr("ComputationServer")
-				<< tr("Missing a request line!");
+		<< tr("Missing a request line!");
 
 	// A request line:
 	QString method;
@@ -232,7 +262,7 @@ bool Server::lexicalHttpParser(QTextStream& stream, HttpData& result) const
 		}
 		else
 			qWarning() << tr("ComputationServer")
-					<< tr("A bad header field detected.");
+			<< tr("A bad header field detected.");
 	}
 
 	return complete;
@@ -262,16 +292,16 @@ Server::HttpData Server::readQueryString(const QString& uri) const
 		}
 		else
 			qWarning() << tr("ComputationServer")
-				<< tr("A bad query string field detected.");
+			<< tr("A bad query string field detected.");
 	}
 
 	return container;
 }
 
-void Server::replyMessage(qintptr descriptor, const QByteArray &buffered)
+void Server::replyMessage(qintptr descriptor, const QByteArray& buffered)
 {
 	// The parent sends a message...
-	QTcpSocket *socket = nullptr;
+	QTcpSocket* socket = nullptr;
 	for (QTcpSocket* s : m_connected) {
 		if (s->socketDescriptor() == descriptor) {
 			socket = s;
@@ -296,7 +326,7 @@ void Server::replyMessage(qintptr descriptor, const QByteArray &buffered)
 	}
 }
 
-QTextStream& Server::errorResponse(QTextStream& stream, int statusCode, 
+QTextStream& Server::errorResponse(QTextStream& stream, int statusCode,
 	const char* reasonPhrase, bool connection) const
 {
 	/*
@@ -310,9 +340,9 @@ QTextStream& Server::errorResponse(QTextStream& stream, int statusCode,
 		<< statusCode << HttpProtocol::DELIMITER_TERM << reasonPhrase << HttpProtocol::DELIMITER_LINE
 		<< HttpProtocol::HeaderField::Name::DATE << HttpProtocol::DELIMITER_FIELD << HttpProtocol::DELIMITER_TERM
 		<< Server::utcTimeEnglishText() << HttpProtocol::DELIMITER_LINE
-		<< HttpProtocol::HeaderField::Name::SERVER << HttpProtocol::DELIMITER_FIELD	<< HttpProtocol::DELIMITER_TERM
+		<< HttpProtocol::HeaderField::Name::SERVER << HttpProtocol::DELIMITER_FIELD << HttpProtocol::DELIMITER_TERM
 		<< HttpProtocol::HeaderField::Value::SERVER << HttpProtocol::DELIMITER_LINE
-		<< HttpProtocol::HeaderField::Name::CONNECTION << HttpProtocol::DELIMITER_FIELD	<< HttpProtocol::DELIMITER_TERM
+		<< HttpProtocol::HeaderField::Name::CONNECTION << HttpProtocol::DELIMITER_FIELD << HttpProtocol::DELIMITER_TERM
 		<< (connection ? HttpProtocol::HeaderField::Value::CONNECTION_KEEP_ALIVE : HttpProtocol::HeaderField::Value::CONNECTION_CLOSE);
 
 	return stream;
@@ -335,7 +365,7 @@ QTextStream& Server::normalResponse(QTextStream& stream, const QString& info,
 		Content...
 	*/
 
-	const QString scale = QString::number(scaleFactor, 'f', 5);
+	const QString scale = QString::number(scaleFactor);
 	stream << HttpProtocol::VERSION << HttpProtocol::DELIMITER_TERM
 		<< HttpProtocol::StatusCode::OK << HttpProtocol::DELIMITER_TERM << HttpProtocol::ReasonPhrase::OK << HttpProtocol::DELIMITER_LINE
 		<< HttpProtocol::HeaderField::Name::DATE << HttpProtocol::DELIMITER_FIELD << HttpProtocol::DELIMITER_TERM
@@ -346,13 +376,13 @@ QTextStream& Server::normalResponse(QTextStream& stream, const QString& info,
 		<< length << HttpProtocol::DELIMITER_LINE
 		<< HttpProtocol::HeaderField::Name::INFO << HttpProtocol::DELIMITER_FIELD << HttpProtocol::DELIMITER_TERM
 		<< info << HttpProtocol::DELIMITER_LINE
-		<< HttpProtocol::HeaderField::Name::E_TOKEN << HttpProtocol::DELIMITER_FIELD << HttpProtocol::DELIMITER_TERM
-		<< Server::generateToken() << HttpProtocol::DELIMITER_LINE
-		<< HttpProtocol::HeaderField::Name::SERVER << HttpProtocol::DELIMITER_FIELD	<< HttpProtocol::DELIMITER_TERM
+		<< HttpProtocol::HeaderField::Name::ETAG << HttpProtocol::DELIMITER_FIELD << HttpProtocol::DELIMITER_TERM
+		<< '\"' << Server::generateToken() << '\"' << HttpProtocol::DELIMITER_LINE
+		<< HttpProtocol::HeaderField::Name::SERVER << HttpProtocol::DELIMITER_FIELD << HttpProtocol::DELIMITER_TERM
 		<< HttpProtocol::HeaderField::Value::SERVER << HttpProtocol::DELIMITER_LINE
 		<< HttpProtocol::HeaderField::Name::SCALE_FACTOR << HttpProtocol::DELIMITER_FIELD << HttpProtocol::DELIMITER_TERM
 		<< scale << HttpProtocol::DELIMITER_LINE
-		<< HttpProtocol::HeaderField::Name::CONNECTION << HttpProtocol::DELIMITER_FIELD	<< HttpProtocol::DELIMITER_TERM
+		<< HttpProtocol::HeaderField::Name::CONNECTION << HttpProtocol::DELIMITER_FIELD << HttpProtocol::DELIMITER_TERM
 		<< (connection ? HttpProtocol::HeaderField::Value::CONNECTION_KEEP_ALIVE : HttpProtocol::HeaderField::Value::CONNECTION_CLOSE) << HttpProtocol::DELIMITER_LINE
 		<< HttpProtocol::DELIMITER_LINE
 		<< content;

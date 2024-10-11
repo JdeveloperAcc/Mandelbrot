@@ -6,10 +6,10 @@
 
 using namespace Mandelbrot::WidgetApp;
 
-bool MouseHoverEater::eventFilter(QObject *obj, QEvent *event)
+bool MouseHoverEater::eventFilter(QObject* obj, QEvent* event)
 {
 	if (event->type() == QEvent::HoverEnter) {
-		QWidget *widget = dynamic_cast<QWidget*>(obj);
+		QWidget* widget = dynamic_cast<QWidget*>(obj);
 		if (widget) {
 			widget->setCursor(Qt::PointingHandCursor);
 		}
@@ -17,7 +17,7 @@ bool MouseHoverEater::eventFilter(QObject *obj, QEvent *event)
 		return true;
 	}
 	if (event->type() == QEvent::HoverLeave) {
-		QWidget *widget = dynamic_cast<QWidget*>(obj);
+		QWidget* widget = dynamic_cast<QWidget*>(obj);
 		if (widget) {
 			widget->setCursor(Qt::CrossCursor);
 		}

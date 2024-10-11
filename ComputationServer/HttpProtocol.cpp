@@ -36,13 +36,14 @@ const char* HttpProtocol::HeaderField::Name::DATE = "Date";
 const char* HttpProtocol::HeaderField::Name::CONTENT_TYPE = "Content-Type";
 const char* HttpProtocol::HeaderField::Name::CONTENT_LENGTH = "Content-Length";
 const char* HttpProtocol::HeaderField::Name::SERVER = "Server";
+const char* HttpProtocol::HeaderField::Name::ETAG = "ETag";
 const char* HttpProtocol::HeaderField::Name::INFO = "Info";
 const char* HttpProtocol::HeaderField::Name::SCALE_FACTOR = "Scale-Factor";
-const char* HttpProtocol::HeaderField::Name::E_TOKEN = "E-Token";
 
 const char* HttpProtocol::HeaderField::Value::ACCEPT = "text/plain";
 const char* HttpProtocol::HeaderField::Value::CONNECTION_CLOSE = "close";
 const char* HttpProtocol::HeaderField::Value::CONNECTION_KEEP_ALIVE = "keep-alive";
-const char* HttpProtocol::HeaderField::Value::CONTENT_TYPE_IMAGE_PNG = "image/bmp";
+const char* HttpProtocol::HeaderField::Value::CONTENT_TYPE_IMAGE_JPEG = "image/jpeg";
+const char* HttpProtocol::HeaderField::Value::CONTENT_TYPE_IMAGE_PNG = "image/png";
 const char* HttpProtocol::HeaderField::Value::CONTENT_TYPE_TEXT_PLAIN = "text/plain";
 const char* HttpProtocol::HeaderField::Value::SERVER = "Test Environment (Qt)";

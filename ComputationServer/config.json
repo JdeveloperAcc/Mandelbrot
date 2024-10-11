@@ -1,4 +1,4 @@
 {
-	"listening_ip": "127.0.0.1",
-	"listening_port": 8055
+  "listening_ip": "127.0.0.1",
+  "listening_port": 8055
 }
