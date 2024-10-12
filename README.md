@@ -56,9 +56,9 @@ https://doc.qt.io/qt-6/qnetworkaccessmanager.html
 9. HTTP (Hypertext Transfer Protocol)
 https://en.wikipedia.org/wiki/HTTP
 
-Let's make Qt Socket's implementation, QNetworkAccessManager connects to listening QTcpServer, an used protocol is, 'take it simple as much as posible,' so HTTP/1.1.
+  Let's make Qt Socket's implementation, QNetworkAccessManager connects to listening QTcpServer, an used protocol is, 'take it simple as much as posible,' so HTTP/1.1.
 
-My designed URL: http://127.0.0.1:8055/?centerX=-0.568348&centerY=-0.0395159&scaleFactor=0.004038&resultWidth=1024&resultHeight=768&pixelRatio=1.5&color=4278190080
+  My designed URL: http://127.0.0.1:8055/?centerX=-0.568348&centerY=-0.0395159&scaleFactor=0.004038&resultWidth=1024&resultHeight=768&pixelRatio=1.5&color=4278190080
 
 10. QFileDialog Class
 The QFileDialog class provides a dialog that allows users to select files or directories.
