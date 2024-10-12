@@ -23,6 +23,7 @@ Some advice: "Try to separate a graphical part of a Qt project from actual compu
 ---------------------------------------------------------------------------------------------------------------------------------------------
 
 The Referenced Resources:
+
 1.Qt for Beginners
 https://wiki.qt.io/Qt_for_Beginners
 
